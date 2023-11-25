@@ -1,0 +1,4 @@
+simulation: main.h main.cpp simulation.h simulation.cpp forces.h forces.cpp
+	 g++ -g main.cpp simulation.cpp forces.cpp -o main
+clean:
+	 rm -f mmu *~
