@@ -10,6 +10,12 @@
 #include <iostream>
 #include <vector>
 
+
+#include <mlpack/core.hpp>
+#include <mlpack/methods/linear_regression/linear_regression.hpp>
+
+
+
 //#include "forces.h"
 #include "simulation.h"
 #include "forces.h"

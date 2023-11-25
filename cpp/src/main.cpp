@@ -43,11 +43,11 @@ int main(int argc, char **argv) {
     double mass = 1.0;
     double originalPosition = 0.0;
     double originalVelocity = 0.0;
-    double dt = 0.0001;  // Smaller time step for increased accuracy
-    double simulationDuration = 10.0;
+    double dt = 0.001;  // Smaller time step for increased accuracy
+    double simulationDuration = 1.0;
 
 
-    std::vector<double> Kp_list = {200}; //{0, 0.1, 1, 2, 5, 10, 50, 100};
+    std::vector<double> Kp_list = {0, 10, 20, 50, 100, 200}; //{200}; //{0, 0.1, 1, 2, 5, 10, 50, 100};
     std::vector<double> Ki_list = {5}; //{0, 0.1, 1, 2, 5, 10, 50, 100};
     std::vector<double> Kd_list = {0}; //{0, 0.1, 1, 2, 5, 10, 50, 100};
     std::vector<double> target_list = {0}; //{-100, -50, -10, -5, -2, -1, -0.1, 0, 0.1, 1, 2, 5, 10, 50, 100};
@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
                     system.simulate(simulationDuration);
 
                     // Save results to a file: use format "res_KI_KD_KP_target.txt" where you replace KI with actual Ki etc. also save to folder /results
-                    std::string filename = "results/res_Kp_" + std::to_string(Kp) + "_Ki_" + std::to_string(Ki) + "_Kd_" + std::to_string(Kd) + "_target_" + std::to_string(target) + ".txt";
+                    std::string filename = "results/res_Kp_" + std::to_string(Kp) + "_Ki_" + std::to_string(Ki) + "_Kd_" + std::to_string(Kd) + "_target_" + std::to_string(target) + ".csv";
                     system.saveResultsToFile(filename);
                     count++;
 
@@ -88,6 +88,37 @@ int main(int argc, char **argv) {
             }
         }
     }
+
+
+
     std::cout << "\n" << "Simulation finished!\n";
+
+
+    // // Load the dataset.
+    // arma::mat X;  // Feature matrix.
+    // arma::rowvec y;  // Response variable.
+
+    // // Load your data into X and y.
+    // // For example:
+    // // mlpack::data::Load("your_data.csv", X, true);
+    // // mlpack::data::Load("your_labels.csv", y, true);
+
+    // // Perform linear regression.
+    // mlpack::LinearRegression linear_model(X, y);
+
+    // // Get the parameters (coefficients) of the linear model.
+    // arma::rowvec parameters = linear_model.Parameters();
+
+    // // Print the parameters.
+    // std::cout << "Parameters (Coefficients): " << parameters << std::endl;
+
+    // // Make predictions.
+    // arma::rowvec predictions;
+    // linear_model.Predict(X, predictions);
+
+    // // Print the predictions.
+    // std::cout << "Predictions: " << predictions << std::endl;
+
+
     return 0;
 }

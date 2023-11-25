@@ -1,17 +1,17 @@
 #include "simulation.h"
 
-System::System(double _mass, double _originalPosition, double _originalVelocity, double _dt, Force& _force)
+System::System(double _mass, double _originalPosition, double _originalVelocity, double _dt, ForceVector& _force_vector)
     : mass(_mass),
       originalPosition(_originalPosition),
       originalVelocity(_originalVelocity),
       position(_originalPosition),
       velocity(_originalVelocity),
       dt(_dt),
-      force(_force) {}
+      force_vector(_force_vector) {}
 
 void System::simulate(double simulationDuration) {
     for (double time = 0; time < simulationDuration; time += dt) {
-        double forceValue = force.calculate(position, dt);
+        double forceValue = force_vector.calculate(position, dt);
 
         // Forces calculation using F = m * a
         acceleration = forceValue / mass;
@@ -24,6 +24,9 @@ void System::simulate(double simulationDuration) {
         originalPosition = position;
         position = positionNext;
 
+        // 
+
+
         // Append current position and time values for recording
         positions.push_back(position);
         velocities.push_back(velocity);
@@ -35,8 +38,9 @@ void System::simulate(double simulationDuration) {
 void System::saveResultsToFile(const std::string& filename) const {
     std::ofstream file(filename);
     if (file.is_open()) {
-        force.printPreamble(file);
+        force_vector.printPreamble(file);
 
+        file << "# ";
         if (print_time)
             file << "time ";
         if (print_position)
@@ -46,9 +50,10 @@ void System::saveResultsToFile(const std::string& filename) const {
         if (print_acceleration) 
             file << " acceleration ";
         if (print_force)    
-            force.printStatusHeader();
+            force_vector.printStatusHeader();
+        file << "\n";
         
-        "# time position velocity acceleration\n";
+        //"# time position velocity acceleration\n";
 
         // Set precision for output
         file << std::fixed << std::setprecision(8);
@@ -63,7 +68,10 @@ void System::saveResultsToFile(const std::string& filename) const {
             if (print_acceleration) 
                 file << accelerations[i] << " ";
             if (print_force)    
-                force.printStatus();
+                force_vector.printStatus();
+            
+            int diff_t_p = velocities[i] - positions[i];
+            int diff_t_p_sq = std::pow(diff_t_p,2);
 
             file << "\n";
         }

@@ -2,3 +2,4 @@
 main
 .vscode
 *.ipynb
+cpp/src/results/*
