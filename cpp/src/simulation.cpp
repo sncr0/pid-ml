@@ -10,6 +10,7 @@ System::System(double _mass, double _originalPosition, double _originalVelocity,
       force_vector(_force_vector) {}
 
 void System::simulate(double simulationDuration) {
+    diff_p_t_sq_cumulative = 0;
     for (double time = 0; time < simulationDuration; time += dt) {
         double forceValue = force_vector.calculate(position, dt);
 
@@ -25,6 +26,9 @@ void System::simulate(double simulationDuration) {
         position = positionNext;
 
         // 
+        diff_p_t = velocity - position;
+        diff_p_t_sq = std::pow(diff_p_t,2);
+        diff_p_t_sq_cumulative += diff_p_t_sq;
 
 
         // Append current position and time values for recording
@@ -32,6 +36,8 @@ void System::simulate(double simulationDuration) {
         velocities.push_back(velocity);
         accelerations.push_back(acceleration);
         times.push_back(time);
+        diff_p_t_vector.push_back(diff_p_t);
+        diff_p_t_sq_cumulative_vector.push_back(diff_p_t_sq_cumulative);
     }
 }
 
@@ -49,6 +55,7 @@ void System::saveResultsToFile(const std::string& filename) const {
             file << " velocity ";   
         if (print_acceleration) 
             file << " acceleration ";
+        file << " diff_t_p diff_t_p_sq";
         if (print_force)    
             force_vector.printStatusHeader();
         file << "\n";
@@ -67,11 +74,12 @@ void System::saveResultsToFile(const std::string& filename) const {
                 file << velocities[i] << " ";   
             if (print_acceleration) 
                 file << accelerations[i] << " ";
+            file << diff_p_t_vector[i] << " " << diff_p_t_sq_cumulative_vector[i] << " ";
             if (print_force)    
                 force_vector.printStatus();
             
-            int diff_t_p = velocities[i] - positions[i];
-            int diff_t_p_sq = std::pow(diff_t_p,2);
+            // int diff_t_p = velocities[i] - positions[i];
+            // int diff_t_p_sq = std::pow(diff_t_p,2);
 
             file << "\n";
         }

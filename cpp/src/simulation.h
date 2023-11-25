@@ -19,7 +19,7 @@ private:
     double mass;
     double originalPosition, originalVelocity;
     double position, velocity, acceleration;
-    double diff_p_t, diff_p_t_cumulative;
+    double diff_p_t, diff_p_t_sq, diff_p_t_sq_cumulative;
     double dt;
 
     std::vector<double> positions;
@@ -27,7 +27,7 @@ private:
     std::vector<double> accelerations;
     std::vector<double> times;
     std::vector<double> diff_p_t_vector;
-    std::vector<double> diff_p_t_cumulative_vector;
+    std::vector<double> diff_p_t_sq_cumulative_vector;
 
     ForceVector& force_vector;
 

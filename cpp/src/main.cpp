@@ -47,9 +47,9 @@ int main(int argc, char **argv) {
     double simulationDuration = 1.0;
 
 
-    std::vector<double> Kp_list = {0, 10, 20, 50, 100, 200}; //{200}; //{0, 0.1, 1, 2, 5, 10, 50, 100};
-    std::vector<double> Ki_list = {5}; //{0, 0.1, 1, 2, 5, 10, 50, 100};
-    std::vector<double> Kd_list = {0}; //{0, 0.1, 1, 2, 5, 10, 50, 100};
+    std::vector<double> Kp_list = {0, 0.1, 1, 2, 5, 10, 20, 50, 100, 200}; //{200}; //{0, 0.1, 1, 2, 5, 10, 50, 100};
+    std::vector<double> Ki_list = {0, 0.1, 1, 2, 5, 10, 50, 100}; // {5}; //{0, 0.1, 1, 2, 5, 10, 50, 100};
+    std::vector<double> Kd_list = {0, 0.1, 1, 2, 5, 10, 50, 100}; // {0}; //{0, 0.1, 1, 2, 5, 10, 50, 100};
     std::vector<double> target_list = {0}; //{-100, -50, -10, -5, -2, -1, -0.1, 0, 0.1, 1, 2, 5, 10, 50, 100};
 
     // Total number of iterations
@@ -88,6 +88,127 @@ int main(int argc, char **argv) {
             }
         }
     }
+
+    double Kp, Ki, Kd, target;
+    double time, position, velocity, acceleration, diff_t_p, diff_t_p_sq;
+    std::vector<std::vector<double>> input_vector;
+    std::vector<std::vector<double>> output_vector;
+    std::string folderPath = "/home/samuel/pid-ml/cpp/src/results"; 
+    for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {
+        if (entry.is_regular_file()) {
+            std::string filePath = entry.path().string();
+            
+            // Open the file
+            std::ifstream file(filePath);
+            if (!file.is_open()) {
+                std::cerr << "Error opening file: " << filePath << std::endl;
+                continue;
+            }
+
+            // Extract a line
+            std::string line;
+            if (std::getline(file, line)) {
+                // ## PID controller = Kp: 0 Ki: 5 Kd: 0
+                // results/res_Kp_0.000000_Ki_5.000000_Kd_0.000000_target_0.000000.csv
+                printf("%s", filePath.c_str());
+                sscanf(filePath.c_str(), "/home/samuel/pid-ml/cpp/src/results/res_Kp_%lf_Ki_%lf_Kd_%lf_target_%lf.csv", &Kp, &Ki, &Kd, &target);
+
+                //sscanf(filePath.c_str(), "## PID controller = Kp: %lf Ki: %lf Kd: %lf", &Kp, &Ki, &Kd);
+                //sscanf(line.c_str(), "## PID controller = Kp: %lf Ki: %lf Kd: %lf", &Kp, &Ki, &Kd);
+                printf("Kp: %lf, Ki: %lf, Kd: %lf\n", Kp, Ki, Kd);
+                //sscanf(line.c_str(), "# Kp: %lf, Ki: %lf, Kd: %lf, target: %lf", &Kp, &Ki, &Kd, &target);
+
+
+            while(std::getline(file, line)) {
+                if (line[0] != '#') {
+                    // time position diff_t_p diff_t_p_sq
+                    sscanf(line.c_str(), "%lf %lf %lf %lf", &time, &position, &diff_t_p, &diff_t_p_sq);
+                    //std::cout << "Read values: time=" << time << ", position=" << position
+                    //        << ", diff_t_p=" << diff_t_p << ", diff_t_p_sq=" << diff_t_p_sq << std::endl;
+                }
+            }
+            std::vector<double> input = std::vector<double>{Kp, Ki, Kd, target};
+            std::vector<double> output = std::vector<double>{diff_t_p_sq};
+
+            input_vector.push_back(input);
+            output_vector.push_back(output);
+            
+
+
+
+            } else {
+                std::cerr << "Error reading line from file: " << filePath << std::endl;
+            }
+        }
+    }
+
+    // Save input and output vectors to files
+    std::ofstream input_file("input.csv");
+        if (input_file.is_open()) {
+
+            input_file << std::fixed << std::setprecision(8);
+
+            for (size_t i = 0; i < input_vector.size(); ++i) {
+                for (size_t j = 0; j < input_vector[i].size(); ++j) {
+                    input_file << input_vector[i][j];
+                    if (j != (input_vector[i].size()-1)){
+                        input_file << ", ";
+                    }
+                }
+                input_file << "\n";
+            }
+        input_file.close();
+    } else {
+        std::cerr << "Error: Unable to open file for writing." << std::endl;
+    }
+
+    std::ofstream output_file("output.csv");
+        if (output_file.is_open()) {
+
+            output_file << std::fixed << std::setprecision(8);
+
+            for (size_t i = 0; i < output_vector.size(); ++i) {
+                for (size_t j = 0; j < output_vector[i].size(); ++j) {
+                    output_file << output_vector[i][j];
+                    if (j != (output_vector[i].size()-1)){
+                        output_file << ", ";
+                    }
+                }
+                output_file << "\n";
+            }
+        output_file.close();
+    } 
+    else {
+        std::cerr << "Error: Unable to open file for writing." << std::endl;
+    }
+
+
+
+    arma::mat X; // Input matrix
+    arma::mat y; // Output matrix
+
+    // Load your data from CSV files.
+    mlpack::data::Load("input.csv", X, true);
+    mlpack::data::Load("output.csv", y, true);
+
+    // Create the linear regression model.
+    mlpack::regression::LinearRegression lr(X, y);
+
+    // Train the model.
+    lr.Train(X, y);
+
+    // Make predictions.
+    arma::rowvec predictions;
+    lr.Predict(X, predictions);
+
+    // Print the elements of predictions and x side by side
+    for (size_t i = 0; i < predictions.n_elem; ++i) {
+        std::cout << predictions[i] << " " << y[i] << std::endl;
+    }
+    // Print the coefficients.
+    std::cout << "Coefficients: " << lr.Parameters() << std::endl;
+
+    // Return the mean squared error. rsquared
 
 
 
